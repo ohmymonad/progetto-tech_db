@@ -1,0 +1,28 @@
+<h1 class="text-xl font-semibold text-ink-900 mb-6"><%= activity_class ? 'Modifica classe' : 'Nuova classe' %></h1>
+
+<form method="post" action="<%= activity_class ? "/classes/#{activity_class['id']}/edit" : '/classes' %>" class="max-w-md space-y-4">
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Nome</label>
+    <input name="name" required value="<%= h(activity_class && activity_class['name']) %>"
+           class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-accent-500">
+  </div>
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Descrizione</label>
+    <textarea name="description" rows="3"
+              class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-accent-500"><%= h(activity_class && activity_class['description']) %></textarea>
+  </div>
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Orario</label>
+    <input name="schedule" value="<%= h(activity_class && activity_class['schedule']) %>"
+           class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-accent-500">
+  </div>
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Istruttore</label>
+    <input name="instructor" value="<%= h(activity_class && activity_class['instructor']) %>"
+           class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-accent-500">
+  </div>
+  <div class="pt-2 flex gap-2">
+    <button class="bg-accent-500 hover:bg-accent-600 text-white text-sm px-4 py-1.5 rounded">Salva</button>
+    <a href="/classes" class="text-sm px-4 py-1.5 rounded border border-ink-200 hover:bg-ink-100">Annulla</a>
+  </div>
+</form>

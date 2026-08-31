@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Setup minimale per GymManager: avvia Postgres, crea ruolo/db, applica schema.
+set -euo pipefail
+
+ROLE="$(whoami)"
+DB_NAME="gymmanager"
+SOCKET_DIR="/var/run/postgresql"
+
+if ! pg_isready -q; then
+  echo "Avvio PostgreSQL..."
+  service postgresql start
+  sleep 1
+fi
+
+ROLE_EXISTS=$(su postgres -c "psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${ROLE}'\"")
+if [ "$ROLE_EXISTS" != "1" ]; then
+  echo "Creo ruolo Postgres '${ROLE}' (autenticazione peer, nessuna password)..."
+  su postgres -c "psql -c \"CREATE ROLE ${ROLE} LOGIN SUPERUSER\""
+fi
+
+DB_EXISTS=$(psql -U "$ROLE" -h "$SOCKET_DIR" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'")
+if [ "$DB_EXISTS" != "1" ]; then
+  echo "Creo database '${DB_NAME}'..."
+  createdb -U "$ROLE" -h "$SOCKET_DIR" "$DB_NAME"
+fi
+
+echo "Applico schema..."
+psql -U "$ROLE" -h "$SOCKET_DIR" -d "$DB_NAME" -v ON_ERROR_STOP=1 -f "$(dirname "$0")/../db/schema.sql"
+
+if [ "${1:-}" = "--seed" ]; then
+  echo "Carico dati di esempio..."
+  psql -U "$ROLE" -h "$SOCKET_DIR" -d "$DB_NAME" -v ON_ERROR_STOP=1 -f "$(dirname "$0")/../db/seed.sql"
+fi
+
+echo "Setup completato. Avvia l'app con: ruby app.rb"

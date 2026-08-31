@@ -1,0 +1,46 @@
+<h1 class="text-xl font-semibold text-ink-900 mb-6"><%= member ? 'Modifica membro' : 'Nuovo membro' %></h1>
+
+<form method="post" action="<%= member ? "/members/#{member['id']}/edit" : '/members' %>" class="max-w-md space-y-4">
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Nome</label>
+    <input name="first_name" required value="<%= h(member && member['first_name']) %>"
+           class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-accent-500">
+  </div>
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Cognome</label>
+    <input name="last_name" required value="<%= h(member && member['last_name']) %>"
+           class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-accent-500">
+  </div>
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Data di nascita</label>
+    <input type="date" name="birth_date" value="<%= h(member && member['birth_date']) %>"
+           class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-accent-500">
+  </div>
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Indirizzo</label>
+    <input name="address" value="<%= h(member && member['address']) %>"
+           class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-accent-500">
+  </div>
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Telefono</label>
+    <input name="phone" value="<%= h(member && member['phone']) %>"
+           class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-accent-500">
+  </div>
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Email</label>
+    <input type="email" name="email" value="<%= h(member && member['email']) %>"
+           class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-accent-500">
+  </div>
+  <% if member %>
+    <div>
+      <label class="inline-flex items-center gap-2 text-sm text-ink-600">
+        <input type="checkbox" name="active" value="true" <%= 'checked' if member['active'] == 't' %>>
+        Iscrizione attiva
+      </label>
+    </div>
+  <% end %>
+  <div class="pt-2 flex gap-2">
+    <button class="bg-accent-500 hover:bg-accent-600 text-white text-sm px-4 py-1.5 rounded">Salva</button>
+    <a href="/members" class="text-sm px-4 py-1.5 rounded border border-ink-200 hover:bg-ink-100">Annulla</a>
+  </div>
+</form>
