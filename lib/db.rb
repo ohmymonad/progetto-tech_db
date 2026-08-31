@@ -36,7 +36,8 @@ class Db
     args += ['-U', ROLE, '-h', SOCKET_DIR, '-d', DB_NAME]
     params.each { |k, v| args += ['-v', "#{k}=#{v.nil? ? '' : v}"] }
 
-    stdout, stderr, status = Open3.capture3(*args, stdin_data: sql)
+    stdout, stderr, status = Open3.capture3(*args, stdin_data: sql, pgroup: true)
+    stdout.force_encoding('UTF-8') if csv
     raise QueryError, stderr unless status.success?
 
     stdout

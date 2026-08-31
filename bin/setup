@@ -32,4 +32,13 @@ if [ "${1:-}" = "--seed" ]; then
   psql -U "$ROLE" -h "$SOCKET_DIR" -d "$DB_NAME" -v ON_ERROR_STOP=1 -f "$(dirname "$0")/../db/seed.sql"
 fi
 
+# Setup DB di test
+TEST_DB="${DB_NAME}_test"
+TEST_DB_EXISTS=$(psql -U "$ROLE" -h "$SOCKET_DIR" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='${TEST_DB}'")
+if [ "$TEST_DB_EXISTS" != "1" ]; then
+  echo "Creo database di test '${TEST_DB}'..."
+  createdb -U "$ROLE" -h "$SOCKET_DIR" "$TEST_DB"
+  psql -U "$ROLE" -h "$SOCKET_DIR" -d "$TEST_DB" -v ON_ERROR_STOP=1 -f "$(dirname "$0")/../db/schema.sql"
+fi
+
 echo "Setup completato. Avvia l'app con: ruby app.rb"

@@ -17,9 +17,9 @@ class Router
 
   def add(method, path, &block)
     keys = []
-    pattern = path.split('/').map do |seg|
+    pattern = path.split('/', -1).map do |seg|
       if seg.start_with?(':')
-        keys << seg[1..].to_sym
+        keys << seg[1..]
         '([^/]+)'
       else
         Regexp.escape(seg)

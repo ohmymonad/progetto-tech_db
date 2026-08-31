@@ -1,54 +1,20 @@
 require 'socket'
-require 'erb'
 require 'cgi'
 require_relative 'lib/router'
+require_relative 'lib/view'
 require_relative 'lib/models/member'
 require_relative 'lib/models/activity_class'
 require_relative 'lib/models/attendance'
 
-VIEWS_DIR = File.join(__dir__, 'views')
-
-# Contesto di rendering: espone helper alle view ERB.
-class ViewContext
-  attr_accessor :flash_message, :current_path
-
-  def initialize(locals)
-    locals.each do |k, v|
-      instance_variable_set("@#{k}", v)
-      define_singleton_method(k) { v }
-    end
+def normalize_params(params, *keys)
+  keys.each do |key|
+    params[key] = '' unless params.key?(key)
   end
-
-  def h(text)
-    CGI.escapeHTML(text.to_s)
-  end
-
-  def nav_class(prefix)
-    current_path.to_s.start_with?(prefix) ? 'bg-ink-100 text-ink-900' : 'text-ink-600 hover:bg-ink-100'
-  end
-
-  def render_partial(name, locals = {})
-    partial = self.class.new(locals.merge(flash_message: flash_message, current_path: current_path))
-    ERB.new(File.read(File.join(VIEWS_DIR, "#{name}.erb"))).result(partial.send(:binding))
-  end
+  params
 end
 
-def render(view, locals = {}, request: nil, flash: nil)
-  ctx = ViewContext.new(locals)
-  ctx.flash_message = flash
-  ctx.current_path = request&.path
-  content = ERB.new(File.read(File.join(VIEWS_DIR, "#{view}.erb"))).result(ctx.send(:binding))
-  layout_ctx = ViewContext.new(locals.merge(title: 'GymManager'))
-  layout_ctx.flash_message = flash
-  layout_ctx.current_path = request&.path
-  ERB.new(File.read(File.join(VIEWS_DIR, 'layout.erb'))).result(binding_with_yield(layout_ctx, content))
-end
-
-def binding_with_yield(ctx, content)
-  ctx.define_singleton_method(:yield_content) { content }
-  b = ctx.send(:binding)
-  b.local_variable_set(:content, content)
-  b
+def not_found(message)
+  Response.new(404, message)
 end
 
 router = Router.new
@@ -69,17 +35,21 @@ router.get('/members/new') do |req|
 end
 
 router.post('/members') do |req|
-  Member.create(req.params.slice('first_name', 'last_name', 'birth_date', 'address', 'phone', 'email'))
+  attrs = normalize_params(req.params.slice('first_name', 'last_name', 'birth_date', 'address', 'phone', 'email'),
+                           'first_name', 'last_name', 'birth_date', 'address', 'phone', 'email')
+  Member.create(attrs)
   Response.redirect('/members')
 end
 
 router.get('/members/:id/edit') do |req|
   member = Member.find(req.params['id'])
+  return not_found("Membro non trovato") unless member
   Response.new(200, render('members/new', { member: member }, request: req))
 end
 
 router.post('/members/:id/edit') do |req|
-  attrs = req.params.slice('first_name', 'last_name', 'birth_date', 'address', 'phone', 'email')
+  attrs = normalize_params(req.params.slice('first_name', 'last_name', 'birth_date', 'address', 'phone', 'email', 'active'),
+                           'first_name', 'last_name', 'birth_date', 'address', 'phone', 'email', 'active')
   attrs['active'] = req.params.key?('active') ? 'true' : 'false'
   Member.update(req.params['id'], attrs)
   Response.redirect('/members')
@@ -97,12 +67,14 @@ router.get('/attendance') do |req|
 end
 
 router.post('/attendance') do |req|
-  Attendance.register(req.params['member_id'], req.params['checked_in_at'])
-  Response.redirect("/attendance/#{req.params['member_id']}")
+  attrs = normalize_params(req.params.slice('member_id', 'checked_in_at'), 'member_id', 'checked_in_at')
+  Attendance.register(attrs['member_id'], attrs['checked_in_at'])
+  Response.redirect("/attendance/#{attrs['member_id']}")
 end
 
 router.get('/attendance/:id') do |req|
   member = Member.find(req.params['id'])
+  return not_found("Membro non trovato") unless member
   history = Attendance.history(req.params['id'])
   stats = Attendance.stats(req.params['id'])
   Response.new(200, render('attendance/show', {
@@ -124,17 +96,22 @@ router.get('/classes/new') do |req|
 end
 
 router.post('/classes') do |req|
-  ActivityClass.create(req.params.slice('name', 'description', 'schedule', 'instructor'))
+  attrs = normalize_params(req.params.slice('name', 'description', 'schedule', 'instructor'),
+                           'name', 'description', 'schedule', 'instructor')
+  ActivityClass.create(attrs)
   Response.redirect('/classes')
 end
 
 router.get('/classes/:id/edit') do |req|
   activity_class = ActivityClass.find(req.params['id'])
+  return not_found("Classe non trovata") unless activity_class
   Response.new(200, render('classes/new', { activity_class: activity_class }, request: req))
 end
 
 router.post('/classes/:id/edit') do |req|
-  ActivityClass.update(req.params['id'], req.params.slice('name', 'description', 'schedule', 'instructor'))
+  attrs = normalize_params(req.params.slice('name', 'description', 'schedule', 'instructor'),
+                           'name', 'description', 'schedule', 'instructor')
+  ActivityClass.update(req.params['id'], attrs)
   Response.redirect('/classes')
 end
 
@@ -144,7 +121,8 @@ router.post('/classes/:id/delete') do |req|
 end
 
 router.post('/classes/:id/enroll') do |req|
-  ActivityClass.enroll(req.params['member_id'], req.params['id'])
+  attrs = normalize_params(req.params.slice('member_id', 'id'), 'member_id', 'id')
+  ActivityClass.enroll(attrs['member_id'], req.params['id'])
   Response.redirect('/classes')
 end
 
