@@ -1,0 +1,32 @@
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl font-semibold text-ink-900">Registra presenza</h1>
+</div>
+
+<form method="post" action="/attendance" class="max-w-md space-y-4 mb-10">
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Membro</label>
+    <select name="member_id" required class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white">
+      <option value="">Seleziona un membro</option>
+      <% members.each do |m| %>
+        <option value="<%= m['id'] %>"><%= h(m['last_name']) %> <%= h(m['first_name']) %></option>
+      <% end %>
+    </select>
+  </div>
+  <div>
+    <label class="block text-sm text-ink-600 mb-1">Orario di entrata (vuoto = adesso)</label>
+    <input type="datetime-local" name="checked_in_at"
+           class="w-full border border-ink-200 rounded px-3 py-1.5 text-sm bg-white">
+  </div>
+  <button class="bg-accent-500 hover:bg-accent-600 text-white text-sm px-4 py-1.5 rounded">Registra presenza</button>
+</form>
+
+<h2 class="text-sm font-medium text-ink-600 mb-3">Storico e statistiche per membro</h2>
+<ul class="text-sm space-y-1">
+  <% members.each do |m| %>
+    <li>
+      <a href="/attendance/<%= m['id'] %>" class="text-accent-600 hover:underline">
+        <%= h(m['last_name']) %> <%= h(m['first_name']) %>
+      </a>
+    </li>
+  <% end %>
+</ul>

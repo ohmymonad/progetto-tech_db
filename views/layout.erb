@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title || 'GymManager' %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            accent: {
+              50:  '#fbf2ee',
+              100: '#f3ddd2',
+              300: '#dc9d7f',
+              500: '#b5573a',
+              600: '#9c452c',
+              700: '#7d3623',
+            },
+            ink: {
+              50:  '#f7f6f4',
+              100: '#eeece8',
+              200: '#dcd8d1',
+              400: '#948d80',
+              600: '#5b564c',
+              800: '#332f28',
+              900: '#231f1a',
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-ink-50 text-ink-900 font-sans antialiased">
+  <div class="border-b border-ink-200 bg-white">
+    <div class="max-w-5xl mx-auto px-6 flex items-center justify-between h-14">
+      <a href="/" class="font-semibold tracking-tight text-ink-900">GymManager</a>
+      <nav class="flex gap-1 text-sm">
+        <a href="/members" class="px-3 py-1.5 rounded <%= nav_class('/members') %>">Membri</a>
+        <a href="/attendance" class="px-3 py-1.5 rounded <%= nav_class('/attendance') %>">Presenze</a>
+        <a href="/classes" class="px-3 py-1.5 rounded <%= nav_class('/classes') %>">Classi</a>
+      </nav>
+    </div>
+  </div>
+
+  <main class="max-w-5xl mx-auto px-6 py-8">
+    <% if flash_message %>
+      <div class="mb-6 border border-accent-300 bg-accent-50 text-accent-700 text-sm px-4 py-2 rounded">
+        <%= flash_message %>
+      </div>
+    <% end %>
+    <%= content %>
+  </main>
+</body>
+</html>

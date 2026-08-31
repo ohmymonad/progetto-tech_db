@@ -1,0 +1,56 @@
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl font-semibold text-ink-900">Membri</h1>
+  <a href="/members/new" class="text-sm bg-accent-500 hover:bg-accent-600 text-white px-3 py-1.5 rounded">
+    Aggiungi membro
+  </a>
+</div>
+
+<form method="get" action="/members" class="flex gap-2 mb-6">
+  <input type="text" name="name" value="<%= h(name_filter) %>" placeholder="Cerca per nome o cognome"
+         class="flex-1 border border-ink-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-accent-500">
+  <select name="status" class="border border-ink-200 rounded px-3 py-1.5 text-sm bg-white">
+    <option value="" <%= 'selected' if status_filter.to_s.empty? %>>Tutti gli stati</option>
+    <option value="active" <%= 'selected' if status_filter == 'active' %>>Attivi</option>
+    <option value="inactive" <%= 'selected' if status_filter == 'inactive' %>>Non attivi</option>
+  </select>
+  <button class="text-sm border border-ink-200 rounded px-3 py-1.5 hover:bg-ink-100">Filtra</button>
+</form>
+
+<table class="w-full text-sm border-collapse">
+  <thead>
+    <tr class="text-left text-ink-600 border-b border-ink-200">
+      <th class="py-2 pr-3 font-medium">Nome</th>
+      <th class="py-2 pr-3 font-medium">Contatti</th>
+      <th class="py-2 pr-3 font-medium">Stato</th>
+      <th class="py-2 pr-3 font-medium"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% members.each do |m| %>
+      <tr class="border-b border-ink-100">
+        <td class="py-2 pr-3"><%= h(m['last_name']) %> <%= h(m['first_name']) %></td>
+        <td class="py-2 pr-3 text-ink-600"><%= h(m['email']) %><br><span class="text-xs"><%= h(m['phone']) %></span></td>
+        <td class="py-2 pr-3">
+          <% if m['active'] == 't' %>
+            <span class="text-xs px-2 py-0.5 rounded bg-ink-100 text-ink-800">attivo</span>
+          <% else %>
+            <span class="text-xs px-2 py-0.5 rounded bg-ink-100 text-ink-400">non attivo</span>
+          <% end %>
+        </td>
+        <td class="py-2 pr-3 text-right whitespace-nowrap">
+          <a href="/attendance/<%= m['id'] %>" class="text-accent-600 hover:underline">presenze</a>
+          <span class="text-ink-200 mx-1">&middot;</span>
+          <a href="/members/<%= m['id'] %>/edit" class="text-accent-600 hover:underline">modifica</a>
+          <span class="text-ink-200 mx-1">&middot;</span>
+          <form method="post" action="/members/<%= m['id'] %>/delete" class="inline"
+                onsubmit="return confirm('Eliminare questo membro?');">
+            <button class="text-ink-400 hover:text-accent-600">elimina</button>
+          </form>
+        </td>
+      </tr>
+    <% end %>
+    <% if members.empty? %>
+      <tr><td colspan="4" class="py-6 text-center text-ink-400">Nessun membro trovato.</td></tr>
+    <% end %>
+  </tbody>
+</table>
