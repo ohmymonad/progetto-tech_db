@@ -19,7 +19,7 @@ class Router
     keys = []
     pattern = path.split('/').map do |seg|
       if seg.start_with?(':')
-        keys << seg[1..].to_sym
+        keys << seg[1..]
         '([^/]+)'
       else
         Regexp.escape(seg)

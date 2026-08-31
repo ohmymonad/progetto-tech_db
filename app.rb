@@ -8,7 +8,7 @@ require_relative 'lib/models/attendance'
 
 VIEWS_DIR = File.join(__dir__, 'views')
 
-# Contesto di rendering: espone helper alle view ERB.
+# Contesto di rendering: espone helper e variabili alle view ERB.
 class ViewContext
   attr_accessor :flash_message, :current_path
 
@@ -27,28 +27,26 @@ class ViewContext
     current_path.to_s.start_with?(prefix) ? 'bg-ink-100 text-ink-900' : 'text-ink-600 hover:bg-ink-100'
   end
 
-  def render_partial(name, locals = {})
-    partial = self.class.new(locals.merge(flash_message: flash_message, current_path: current_path))
-    ERB.new(File.read(File.join(VIEWS_DIR, "#{name}.erb"))).result(partial.send(:binding))
+  # Binding il cui self e' questo contesto, cosi' le view vedono
+  # gli helper e le variabili definite qui sopra.
+  def view_binding
+    binding
   end
 end
 
+# Renderizza una view dentro il layout condiviso.
 def render(view, locals = {}, request: nil, flash: nil)
+  content = render_template(view, locals, request: request, flash: flash)
+  render_template('layout', locals.merge(title: 'GymManager', content: content),
+                  request: request, flash: flash)
+end
+
+def render_template(name, locals, request:, flash:)
   ctx = ViewContext.new(locals)
   ctx.flash_message = flash
   ctx.current_path = request&.path
-  content = ERB.new(File.read(File.join(VIEWS_DIR, "#{view}.erb"))).result(ctx.send(:binding))
-  layout_ctx = ViewContext.new(locals.merge(title: 'GymManager'))
-  layout_ctx.flash_message = flash
-  layout_ctx.current_path = request&.path
-  ERB.new(File.read(File.join(VIEWS_DIR, 'layout.erb'))).result(binding_with_yield(layout_ctx, content))
-end
-
-def binding_with_yield(ctx, content)
-  ctx.define_singleton_method(:yield_content) { content }
-  b = ctx.send(:binding)
-  b.local_variable_set(:content, content)
-  b
+  template = File.read(File.join(VIEWS_DIR, "#{name}.erb"))
+  ERB.new(template, trim_mode: '-').result(ctx.view_binding)
 end
 
 router = Router.new
